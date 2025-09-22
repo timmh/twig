@@ -4,6 +4,8 @@ import '../services/classification_service.dart';
 import '../services/model_service.dart';
 import '../widgets/spectrogram_widget.dart';
 import 'species_detail_screen.dart';
+import 'licenses_screen.dart';
+import 'about_screen.dart';
 
 class BirdClassificationScreen extends StatefulWidget {
   const BirdClassificationScreen({super.key});
@@ -246,7 +248,53 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
     return Scaffold(
       appBar: AppBar(
         title: const Text('Twig'),
-        backgroundColor: Color(0xFF549342),
+        backgroundColor: const Color(0xFF549342),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'about':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AboutScreen(),
+                    ),
+                  );
+                  break;
+                case 'licenses':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LicensesScreen(),
+                    ),
+                  );
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'about',
+                child: Row(
+                  children: [
+                    Icon(Icons.info),
+                    SizedBox(width: 8),
+                    Text('About'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'licenses',
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline),
+                    SizedBox(width: 8),
+                    Text('Licenses'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

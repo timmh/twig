@@ -1,5 +1,5 @@
 name: twig
-description: "A new Flutter project."
+description: "Mobile app frontend for the Perch V2 bioacoustic classification model."
 publish_to: 'none'
 version: 0.1.0
 
@@ -32,6 +32,7 @@ flutter:
     - weights/assets/labels.csv
     - weights/assets/enhanced_labels.csv
     - weights/assets/perch_v2_ebird_classes.csv
+    - LICENSE
 
 flutter_launcher_icons:
   ios: true

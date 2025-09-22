@@ -22,7 +22,7 @@ Twig is a Flutter mobile app that serves as a frontend to the Perch acoustic cla
 
 2. **Perch Integration**:
    - Perch submodule: Contains the full Google Research bioacoustics codebase
-   - Pre-trained model: `weights/model.tflite` (TensorFlow Lite format)
+   - Pre-trained model: `weights/model_original.tflite` (TensorFlow Lite format)
    - Class labels: `weights/assets/labels.csv` (10k+ species)
    - eBird classification: `weights/assets/perch_v2_ebird_classes.csv`
 
@@ -92,7 +92,7 @@ poetry run python -m unittest discover -s chirp/inference/tests -p "*test.py"
 
 ### ML Components
 - `weights/`: Contains the pre-trained TensorFlow Lite model and associated files
-  - `model.tflite`: The main inference model
+  - `model_original.tflite`: The main inference model
   - `saved_model.pb`: Original SavedModel format
   - `assets/labels.csv`: Full species classification labels
   - `assets/perch_v2_ebird_classes.csv`: eBird-specific class mappings

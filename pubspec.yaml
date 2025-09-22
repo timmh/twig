@@ -28,14 +28,14 @@ flutter:
   uses-material-design: true
   
   assets:
-    - weights/model.tflite
+    - weights/model_original.tflite
     - weights/assets/labels.csv
     - weights/assets/enhanced_labels.csv
     - weights/assets/perch_v2_ebird_classes.csv
 
 flutter_launcher_icons:
   ios: true
-  image_path: "icon.png"
+  image_path: "assets/icon.png"
 
 flutter_native_splash:
   color: "#549342"

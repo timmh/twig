@@ -8,8 +8,9 @@ def convert_model_with_strategy(strategy_name, converter_config_func):
         converter_config_func(converter)
         tflite_model = converter.convert()
         
-        output_path = f'weights/model_{strategy_name}.tflite'
-        with open(output_path, 'wb') as f:
+        base_dir = os.path.join(os.path.dirname(__file__), "..")
+        output_path = os.path.join(base_dir, "weights", f"model_{strategy_name}.tflite")
+        with open(output_path, "wb") as f:
             f.write(tflite_model)
         
         # Get file size for comparison
@@ -65,5 +66,3 @@ for name, config_func in strategies:
         successful_conversions.append(name)
 
 print(f"\nSuccessful conversions: {successful_conversions}")
-print("\nRecommendation: Use 'float16' for best size/compatibility balance")
-print("To use a specific model, copy it to 'weights/model.tflite'")

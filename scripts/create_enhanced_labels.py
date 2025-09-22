@@ -17,8 +17,8 @@ csv.field_size_limit(sys.maxsize)
 
 # Configuration
 # Get the directory of the current script
-SCRIPT_DIR = Path(__file__).parent
-CACHE_DIR = SCRIPT_DIR / 'cache'
+BASE_DIR = Path(__file__).parent.parent
+CACHE_DIR = BASE_DIR / 'cache'
 COL_DATA_URL = "https://api.checklistbank.org/dataset/311872/export.zip?extended=true&format=ColDP"
 COL_CACHE_FILE = CACHE_DIR / 'col_data.zip'
 COL_EXTRACTED_DIR = CACHE_DIR / 'col_data'
@@ -58,6 +58,9 @@ def extract_col_data():
 
     with zipfile.ZipFile(COL_CACHE_FILE, 'r') as zip_ref:
         zip_ref.extractall(COL_EXTRACTED_DIR)
+
+    # Remove the zip file after extraction
+    COL_CACHE_FILE.unlink(missing_ok=True)
 
     print("COL data extracted successfully")
 
@@ -148,8 +151,8 @@ def process_labels():
     Process the labels.csv file and create an enhanced version with common names.
     """
 
-    input_file = SCRIPT_DIR / 'weights/assets/labels.csv'
-    output_file = SCRIPT_DIR / 'weights/assets/enhanced_labels.csv'
+    input_file = BASE_DIR / 'weights/assets/labels.csv'
+    output_file = BASE_DIR / 'weights/assets/enhanced_labels.csv'
 
     # Setup cache and download data
     ensure_cache_dir()

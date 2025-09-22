@@ -44,5 +44,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Cache directory
+# cache and weights directories
 /cache/
+/weights/

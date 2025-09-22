@@ -24,7 +24,7 @@ class ModelService {
         ..useNnApiForAndroid = false;  // Disable NNAPI to avoid additional memory
       
       // Load the TFLite model with optimized options
-      _interpreter = await Interpreter.fromAsset('weights/model.tflite', options: options);
+      _interpreter = await Interpreter.fromAsset('weights/model_original.tflite', options: options);
 
       // Important: allocate tensors first (like Python example)
       _interpreter!.allocateTensors();

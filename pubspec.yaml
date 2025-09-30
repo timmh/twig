@@ -1,7 +1,7 @@
 name: twig
 description: "Mobile app frontend for the Perch V2 bioacoustic classification model."
 publish_to: 'none'
-version: 0.1.0
+version: 0.1.3
 
 environment:
   sdk: ^3.9.0
@@ -28,7 +28,7 @@ flutter:
   uses-material-design: true
   
   assets:
-    - weights/model_original.tflite
+    - weights/model_float16.tflite
     - weights/assets/labels.csv
     - weights/assets/enhanced_labels.csv
     - weights/assets/perch_v2_ebird_classes.csv

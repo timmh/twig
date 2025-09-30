@@ -10,7 +10,6 @@ class ModelService {
   List<String> _labels = [];
   List<String?> _scientificNames = [];
   bool _isInitialized = false;
-  
 
   bool get isInitialized => _isInitialized;
 
@@ -24,7 +23,7 @@ class ModelService {
         ..useNnApiForAndroid = false;  // Disable NNAPI to avoid additional memory
       
       // Load the TFLite model with optimized options
-      _interpreter = await Interpreter.fromAsset('weights/model_original.tflite', options: options);
+      _interpreter = await Interpreter.fromAsset('weights/model_float16.tflite', options: options);
 
       // Important: allocate tensors first (like Python example)
       _interpreter!.allocateTensors();
@@ -142,13 +141,11 @@ class ModelService {
       print('Running inference in isolate using IsolateInterpreter');
       print('Input waveform length: ${audioWaveform.length}');
 
-      // Prepare input - convert to 2D list to match expected input shape [1, 160000]
+      // Prepare input  - must wrap audio in list for TFLite
       final input = [audioWaveform];
 
-      // Prepare outputs - we need to allocate buffers for all 4 output tensors
+      // Allocate fresh output buffers for each inference
       final outputs = <int, Object>{};
-
-      // Check actual output tensor shapes and create appropriate outputs
       final numOutputs = _interpreter!.getOutputTensors().length;
 
       for (int i = 0; i < numOutputs; i++) {

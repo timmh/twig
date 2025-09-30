@@ -73,9 +73,10 @@ class AudioService {
   static const int overlapSeconds = 1;
   static const int segmentSamples = sampleRate * segmentDurationSeconds;
   static const int stepSamples = sampleRate * (segmentDurationSeconds - overlapSeconds);
-  
-  // Pre-allocate conversion buffer to avoid repeated allocations
-  static final List<double> _conversionBuffer = <double>[];
+
+  // Pre-allocate buffers to avoid repeated allocations
+  List<double>? _conversionBuffer;
+  Float32List? _rawAudioBuffer;
 
   Stream<Float32List> get audioSegmentStream => _audioStreamController!.stream;
   Stream<Float32List> get rawAudioStream => _rawAudioStreamController!.stream;
@@ -96,6 +97,11 @@ class AudioService {
     _audioStreamController = StreamController<Float32List>.broadcast();
     _rawAudioStreamController = StreamController<Float32List>.broadcast();
     _audioBuffer = RingBuffer(maxBufferSize);
+
+    // Pre-allocate conversion buffers (typical chunk is ~4096 samples)
+    _conversionBuffer = List<double>.filled(8192, 0.0);
+    _rawAudioBuffer = Float32List(8192);
+
     _isRecording = true;
 
     // Configure recording for 32kHz mono
@@ -118,9 +124,16 @@ class AudioService {
       final samples = _convertPcm16ToFloat32(data);
       _audioBuffer?.addAll(samples);
 
-      // Emit raw audio data for spectrogram - send all samples for real-time display
+      // Emit raw audio data for spectrogram - reuse buffer to avoid allocation
       if (samples.isNotEmpty) {
-        _rawAudioStreamController?.add(Float32List.fromList(samples));
+        // Reuse pre-allocated Float32List buffer
+        if (_rawAudioBuffer!.length < samples.length) {
+          _rawAudioBuffer = Float32List(samples.length);
+        }
+        for (int i = 0; i < samples.length; i++) {
+          _rawAudioBuffer![i] = samples[i];
+        }
+        _rawAudioStreamController?.add(_rawAudioBuffer!.sublist(0, samples.length));
         print('Emitted ${samples.length} samples to raw audio stream');
       }
 
@@ -138,17 +151,25 @@ class AudioService {
   }
 
   List<double> _convertPcm16ToFloat32(Uint8List pcmData) {
-    final samples = <double>[];
-    for (int i = 0; i < pcmData.length; i += 2) {
-      if (i + 1 < pcmData.length) {
-        // Convert 16-bit PCM to float32 normalized to [-1, 1]
-        final sample = (pcmData[i] | (pcmData[i + 1] << 8));
-        final normalizedSample = sample < 32768 ? sample / 32768.0 : (sample - 65536) / 32768.0;
-        samples.add(normalizedSample);
-      }
+    final numSamples = pcmData.length ~/ 2;
+
+    // Ensure conversion buffer is large enough
+    if (_conversionBuffer!.length < numSamples) {
+      _conversionBuffer = List<double>.filled(numSamples, 0.0);
+      print('Resized conversion buffer to $numSamples');
     }
-    print('Converted ${samples.length} samples from ${pcmData.length} bytes');
-    return samples;
+
+    // Convert in place using pre-allocated buffer
+    for (int i = 0; i < numSamples; i++) {
+      final byteIndex = i * 2;
+      final sample = (pcmData[byteIndex] | (pcmData[byteIndex + 1] << 8));
+      _conversionBuffer![i] = sample < 32768 ? sample / 32768.0 : (sample - 65536) / 32768.0;
+    }
+
+    print('Converted $numSamples samples from ${pcmData.length} bytes');
+
+    // Return a view of the buffer (no copy)
+    return _conversionBuffer!.sublist(0, numSamples);
   }
 
   void _processAudioBuffer() {
@@ -171,15 +192,19 @@ class AudioService {
 
   Future<void> stopRecording() async {
     if (!_isRecording) return;
-    
+
     _isRecording = false;
     _segmentTimer?.cancel();
-    
+
     await _recorder.stop();
     await _audioStreamController?.close();
     await _rawAudioStreamController?.close();
 
     _audioBuffer?.clear();
+
+    // Clear buffers to free memory
+    _conversionBuffer = null;
+    _rawAudioBuffer = null;
   }
 
   void dispose() {

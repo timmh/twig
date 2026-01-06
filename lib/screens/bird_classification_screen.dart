@@ -11,17 +11,19 @@ class BirdClassificationScreen extends StatefulWidget {
   const BirdClassificationScreen({super.key});
 
   @override
-  State<BirdClassificationScreen> createState() => _BirdClassificationScreenState();
+  State<BirdClassificationScreen> createState() =>
+      _BirdClassificationScreenState();
 }
 
-class _BirdClassificationScreenState extends State<BirdClassificationScreen> with WidgetsBindingObserver {
+class _BirdClassificationScreenState extends State<BirdClassificationScreen>
+    with WidgetsBindingObserver {
   final ClassificationService _classificationService = ClassificationService();
   final AudioRecorder _recorder = AudioRecorder();
   List<SpeciesPrediction> _currentPredictions = [];
   bool _isRecording = false;
   bool _isInitializing = false;
   String? _errorMessage;
-  bool _hasPermission = false; 
+  bool _hasPermission = false;
 
   @override
   void initState() {
@@ -37,10 +39,10 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
       setState(() {
         _hasPermission = hasPermission;
       });
-      
+
       // Log the permission status for debugging
       print('Has microphone permission: $hasPermission');
-      
+
       // Auto-start recording if we have permissions and initialization is complete
       _tryAutoStartRecording();
     } catch (e) {
@@ -62,7 +64,7 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
       setState(() {
         _isInitializing = false;
       });
-      
+
       // Auto-start recording if we have permissions and initialization is now complete
       _tryAutoStartRecording();
     } catch (e) {
@@ -79,7 +81,10 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
     // 2. Initialization is complete
     // 3. We're not already recording
     // 4. There's no error message
-    if (_hasPermission && !_isInitializing && !_isRecording && _errorMessage == null) {
+    if (_hasPermission &&
+        !_isInitializing &&
+        !_isRecording &&
+        _errorMessage == null) {
       print('Auto-starting recording...');
       _startRecording();
     }
@@ -103,13 +108,14 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
       await _checkPermissions();
       if (!_hasPermission) {
         setState(() {
-          _errorMessage = 'Microphone permission is required to start recording';
+          _errorMessage =
+              'Microphone permission is required to start recording';
         });
         return;
       }
 
       await _classificationService.startClassification();
-      
+
       // Listen to predictions
       _classificationService.predictionsStream.listen(
         (predictions) {
@@ -133,7 +139,8 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
       final errorStr = e.toString();
       setState(() {
         if (errorStr.contains('Microphone permission denied')) {
-          _errorMessage = 'Microphone permission denied. Please grant access and try again.';
+          _errorMessage =
+              'Microphone permission denied. Please grant access and try again.';
           _hasPermission = false; // Update permission status
         } else {
           _errorMessage = 'Failed to start recording: $e';
@@ -146,29 +153,33 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
     // This will need to be handled by the user manually
     // since we removed permission_handler package
     setState(() {
-      _errorMessage = 'Please go to iOS Settings > Privacy & Security > Microphone and enable access for Twig';
+      _errorMessage =
+          'Please go to iOS Settings > Privacy & Security > Microphone and enable access for Twig';
     });
   }
 
   Future<void> _requestPermission() async {
     try {
       print('Requesting microphone permission...');
-      
+
       // The record package will automatically show the permission dialog
       // when we try to start recording. Let's check current status first.
       final hasPermission = await _recorder.hasPermission();
       print('Current permission status: $hasPermission');
-      
+
       if (!hasPermission) {
         // Try to start a temporary recording to trigger permission dialog
         try {
-          await _recorder.start(const RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            sampleRate: 16000,
-            numChannels: 1,
-          ), path: '');
+          await _recorder.start(
+            const RecordConfig(
+              encoder: AudioEncoder.aacLc,
+              sampleRate: 16000,
+              numChannels: 1,
+            ),
+            path: '',
+          );
           await _recorder.stop();
-          
+
           // Check permission again after the attempt
           final newPermission = await _recorder.hasPermission();
           setState(() {
@@ -176,10 +187,11 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
             if (newPermission) {
               _errorMessage = null;
             } else {
-              _errorMessage = 'Microphone permission denied. Please enable it in Settings.';
+              _errorMessage =
+                  'Microphone permission denied. Please enable it in Settings.';
             }
           });
-          
+
           // Try to auto-start recording if permission was granted
           if (newPermission) {
             _tryAutoStartRecording();
@@ -188,7 +200,8 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
           print('Error during permission request: $e');
           setState(() {
             _hasPermission = false;
-            _errorMessage = 'Microphone permission denied. Please enable it in Settings.';
+            _errorMessage =
+                'Microphone permission denied. Please enable it in Settings.';
           });
         }
       } else {
@@ -196,11 +209,11 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
           _hasPermission = true;
           _errorMessage = null;
         });
-        
+
         // Try to auto-start recording if we already have permission
         _tryAutoStartRecording();
       }
-      
+
       // Refresh the permission status
       await _checkPermissions();
     } catch (e) {
@@ -322,7 +335,7 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Permission status
                     if (!_hasPermission)
                       Row(
@@ -335,7 +348,9 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _hasPermission ? 'Microphone access granted' : 'Microphone access needed',
+                            _hasPermission
+                                ? 'Microphone access granted'
+                                : 'Microphone access needed',
                             style: TextStyle(
                               color: _hasPermission ? Colors.green : Colors.red,
                               fontWeight: FontWeight.bold,
@@ -343,9 +358,9 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                           ),
                         ],
                       ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     // Request permission button if not granted
                     if (!_hasPermission)
                       ElevatedButton.icon(
@@ -355,20 +370,30 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                         ),
                       ),
-                    
+
                     if (_hasPermission) ...[
                       const SizedBox(height: 8),
                       ElevatedButton.icon(
                         onPressed: _isInitializing ? null : _toggleRecording,
-                        icon: Icon(_isRecording ? Icons.stop : Icons.play_arrow),
+                        icon: Icon(
+                          _isRecording ? Icons.stop : Icons.play_arrow,
+                        ),
                         label: Text(_isRecording ? 'Stop' : 'Start Recording'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isRecording ? Colors.red : Colors.green,
+                          backgroundColor: _isRecording
+                              ? Colors.red
+                              : Colors.green,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ],
@@ -376,7 +401,7 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
 
             // Spectrogram - show when recording
@@ -389,7 +414,9 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                     children: [
                       Center(
                         child: SpectrogramWidget(
-                          audioStream: _classificationService.audioService.rawAudioStream,
+                          audioStream: _classificationService
+                              .audioService
+                              .rawAudioStream,
                           width: MediaQuery.of(context).size.width - 64,
                           height: 75,
                         ),
@@ -399,8 +426,7 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                 ),
               ),
 
-            if (_isRecording)
-              const SizedBox(height: 20),
+            if (_isRecording) const SizedBox(height: 20),
 
             // Error Message
             if (_errorMessage != null)
@@ -423,11 +449,16 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                           ),
                         ],
                       ),
-                      if (_errorMessage!.contains('Microphone permission denied')) ...[
+                      if (_errorMessage!.contains(
+                        'Microphone permission denied',
+                      )) ...[
                         const SizedBox(height: 12),
                         Text(
                           'Please enable microphone access in Settings to use bird classification.',
-                          style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.red.shade700,
+                            fontSize: 12,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         ElevatedButton.icon(
@@ -479,8 +510,9 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                             itemCount: _currentPredictions.length,
                             itemBuilder: (context, index) {
                               final prediction = _currentPredictions[index];
-                              final confidence = (prediction.confidence * 100).toStringAsFixed(1);
-                              
+                              final confidence = (prediction.confidence * 100)
+                                  .toStringAsFixed(1);
+
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 child: ListTile(
@@ -488,14 +520,17 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => SpeciesDetailScreen(
-                                          prediction: prediction,
-                                        ),
+                                        builder: (context) =>
+                                            SpeciesDetailScreen(
+                                              prediction: prediction,
+                                            ),
                                       ),
                                     );
                                   },
                                   leading: CircleAvatar(
-                                    backgroundColor: _getConfidenceColor(prediction.confidence),
+                                    backgroundColor: _getConfidenceColor(
+                                      prediction.confidence,
+                                    ),
                                     child: Text(
                                       '${index + 1}',
                                       style: const TextStyle(
@@ -506,7 +541,9 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                                   ),
                                   title: Text(
                                     prediction.speciesName,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   subtitle: Text('Confidence: $confidence%'),
                                   trailing: Row(
@@ -517,9 +554,12 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
                                         child: LinearProgressIndicator(
                                           value: prediction.confidence,
                                           backgroundColor: Colors.grey.shade300,
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                            _getConfidenceColor(prediction.confidence),
-                                          ),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                _getConfidenceColor(
+                                                  prediction.confidence,
+                                                ),
+                                              ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -543,31 +583,24 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
 
             // Instructions when not recording
             if (!_isRecording && !_isInitializing && _errorMessage == null)
-              const Expanded(
+              Expanded(
                 child: Card(
                   child: Padding(
-                    padding: EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.pets,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
+                        const Icon(Icons.pets, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        const Text(
                           'Tap "Start Recording" to begin bird classification',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'The app will analyze 5-second audio segments and show the top 3 most likely species.',
-                          style: TextStyle(
+                          'The app will analyze ${_segmentDurationText()}-second audio segments and show the top 3 most likely species.',
+                          style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
                           ),
@@ -582,6 +615,14 @@ class _BirdClassificationScreenState extends State<BirdClassificationScreen> wit
         ),
       ),
     );
+  }
+
+  String _segmentDurationText() {
+    final duration = _classificationService.audioService.segmentDurationSeconds;
+    if (duration.truncateToDouble() == duration) {
+      return duration.toInt().toString();
+    }
+    return duration.toStringAsFixed(1);
   }
 
   Color _getConfidenceColor(double confidence) {
